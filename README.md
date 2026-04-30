@@ -1,4 +1,4 @@
-# DeweyWiki
+# DeweyWiki [https://nothatkind.github.io/DeweyWiki/]
 Chooses a random **Dewey Decimal category** and shows a **starred, featured, or highly rated** Wikipedia article from the category.
 
 Simply use **Shuffle** to get a new page and **Share** to share. No other buttons!
