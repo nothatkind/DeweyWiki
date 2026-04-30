@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>STACKS // Dewey Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#020d1a;--bg2:#041527;
+  --cyan:#00d4ff;--cyan2:#00a8cc;
+  --cyan-dim:rgba(0,212,255,0.10);
+  --cyan-glow:rgba(0,212,255,0.4);
+  --text:#c8eeff;--text2:#5fa8c8;--text3:#2a5a7a;
+  --grid:rgba(0,212,255,0.06);--border:rgba(0,212,255,0.18);
+}
+
+html,body{
+  height:100%;
+  background:var(--bg);
+  font-family:'Rajdhani',sans-serif;
+  color:var(--text);
+}
+
+/* ── BG ── */
+.grid-bg{
+  position:fixed;inset:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:52px 52px;
+  animation:gridDrift 24s linear infinite;
+  pointer-events:none;z-index:0;
+}
+@keyframes gridDrift{from{background-position:0 0}to{background-position:0 52px}}
+.scanlines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:1;}
+.corner{position:fixed;width:36px;height:36px;pointer-events:none;z-index:3;}
+.corner.tl{top:0;left:0;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan);}
+.corner.tr{top:0;right:0;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+.corner.bl{bottom:0;left:0;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan);}
+.corner.br{bottom:0;right:0;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+
+/* ── DESKTOP LAYOUT ── */
+.app{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ── HEADER ── */
+header{
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;
+  border-bottom:1px solid var(--border);
+  background:rgba(2,13,26,0.92);
+  backdrop-filter:blur(12px);
+  position:relative;
+  gap:12px;
+}
+header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan) 30%,var(--cyan) 70%,transparent);animation:hglow 3s ease-in-out infinite;}
+@keyframes hglow{0%,100%{opacity:.25}50%{opacity:.9}}
+
+.wordmark{display:flex;align-items:baseline;gap:10px;}
+.wordmark-main{font-weight:700;font-size:18px;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow);}
+.wordmark-sub{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--text3);}
+
+.status-bar{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.12em;}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+
+.btn-row{display:flex;gap:8px;align-items:center;position:relative;}
+
+.btn{
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:.15em;text-transform:uppercase;cursor:pointer;
+  padding:8px 18px;display:flex;align-items:center;gap:6px;
+  transition:all .18s;border:none;
+  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.btn-shuffle{background:var(--cyan);color:var(--bg);}
+.btn-shuffle:hover{background:#fff;box-shadow:0 0 28px var(--cyan-glow);transform:translateY(-1px);}
+.btn-shuffle:active{transform:scale(.97);}
+
+.btn-share{
+  background:rgba(0,212,255,0.08);color:var(--cyan);
+  border:1.5px solid var(--cyan);position:relative;
+  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+  box-shadow:0 0 12px rgba(0,212,255,0.2),inset 0 0 10px rgba(0,212,255,0.05);
+  text-shadow:0 0 8px var(--cyan-glow);
+}
+.btn-share:hover{background:rgba(0,212,255,0.18);box-shadow:0 0 26px var(--cyan-glow),inset 0 0 16px rgba(0,212,255,0.1);transform:translateY(-1px);}
+.btn-share:disabled{opacity:.28;cursor:default;pointer-events:all;box-shadow:none;border-color:var(--border);text-shadow:none;background:transparent;}
+.btn-share:disabled:hover::after{
+  content:'Shuffle first to unlock';
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--border);color:var(--text2);
+  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.1em;
+  white-space:nowrap;padding:5px 12px;pointer-events:none;z-index:99;
+}
+.btn-share:disabled:hover::before{
+  content:'';position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--border);pointer-events:none;z-index:99;
+}
+
+/* ── DESKTOP BODY ── */
+.body{display:flex;flex:1;overflow:hidden;min-height:0;}
+
+.left{
+  width:300px;flex-shrink:0;
+  background:rgba(4,21,39,0.7);
+  border-right:1px solid var(--border);
+  padding:28px 22px;
+  display:flex;flex-direction:column;gap:22px;
+  overflow-y:auto;
+}
+.left::-webkit-scrollbar{width:2px;}
+.left::-webkit-scrollbar-thumb{background:var(--cyan2);}
+
+.right{
+  flex:1;display:flex;flex-direction:column;
+  background:rgba(2,13,26,0.5);
+  overflow:hidden;min-width:0;
+}
+
+/* ── SHARED COMPONENTS ── */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text3);text-align:center;}
+.empty-hex{width:56px;height:56px;border:1px solid rgba(0,212,255,0.2);background:var(--cyan-dim);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--cyan);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);animation:pulseHex 2.5s ease-in-out infinite;}
+@keyframes pulseHex{0%,100%{opacity:.3}50%{opacity:.9}}
+.empty-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;}
+.empty-hint{font-size:10px;opacity:.4;letter-spacing:.1em;font-family:'Share Tech Mono',monospace;margin-top:4px;}
+
+.data-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.divider{height:1px;background:linear-gradient(90deg,var(--cyan2),transparent);opacity:.2;}
+
+.dewey-block{position:relative;padding-left:16px;}
+.dewey-block::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--cyan),transparent);}
+.dewey-number{font-family:'Share Tech Mono',monospace;font-size:52px;color:var(--cyan);line-height:1;letter-spacing:-2px;text-shadow:0 0 24px var(--cyan-glow);}
+.dewey-range{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text2);letter-spacing:.15em;margin-top:3px;}
+.cat-name{font-size:18px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:.03em;margin-top:5px;}
+.cat-desc{font-size:12.5px;color:var(--text2);line-height:1.65;margin-top:7px;font-weight:400;}
+.art-link{font-size:15px;font-weight:600;color:var(--cyan);margin-top:5px;cursor:pointer;line-height:1.35;letter-spacing:.03em;display:inline-block;text-shadow:0 0 10px rgba(0,212,255,0.3);transition:text-shadow .2s;}
+.art-link:hover{text-shadow:0 0 22px var(--cyan-glow);}
+.badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;border:1px solid rgba(0,212,255,0.25);color:var(--cyan2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;background:var(--cyan-dim);clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+
+.wiki-bar{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 20px;border-bottom:1px solid var(--border);background:rgba(4,21,39,0.8);}
+.wiki-url{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.wiki-content{flex:1;overflow-y:auto;padding:32px 36px;}
+.wiki-content::-webkit-scrollbar{width:2px;}
+.wiki-content::-webkit-scrollbar-thumb{background:var(--cyan2);}
+
+.art-header{border-left:3px solid var(--cyan);padding-left:18px;margin-bottom:28px;}
+.art-h1{font-size:26px;font-weight:700;color:#fff;line-height:1.15;letter-spacing:.02em;text-shadow:0 0 40px rgba(0,212,255,0.15);margin-top:6px;}
+.art-desc{font-size:13px;color:var(--text2);margin-top:6px;font-style:italic;}
+.summary p{font-size:14px;line-height:1.8;color:#90c8e0;margin-bottom:14px;font-weight:400;}
+
+.read-full{display:inline-flex;align-items:center;gap:8px;margin-top:24px;background:var(--cyan);color:var(--bg);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:10px 24px;border:none;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .2s;}
+.read-full:hover{background:#fff;box-shadow:0 0 30px var(--cyan-glow);transform:translateY(-1px);}
+
+.center-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--text3);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;}
+.ring{width:34px;height:34px;border:2px solid rgba(0,212,255,0.15);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;box-shadow:0 0 14px var(--cyan-glow);}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp .35s ease both;}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--cyan);color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;padding:10px 24px;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:9999;box-shadow:0 0 30px var(--cyan-glow);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ─────────────────────────────────────────
+   MOBILE  ≤ 680px
+   Stack vertically. No fixed height tricks.
+   Simple show/hide panels via class.
+───────────────────────────────────────── */
+@media(max-width:680px){
+
+  /* Let page scroll naturally */
+  html,body{height:auto;min-height:100%;}
+
+  .app{
+    height:auto;
+    min-height:100svh;
+    overflow:visible;
+  }
+
+  /* Tighter header */
+  header{padding:10px 14px;flex-wrap:nowrap;}
+  .wordmark-sub{display:none;}
+  .status-bar{display:none;}
+  .btn{padding:7px 13px;font-size:11px;letter-spacing:.1em;}
+
+  /* Body stacks vertically, no overflow:hidden */
+  .body{
+    flex-direction:column;
+    overflow:visible;
+    flex:none;
+  }
+
+  /* Left panel: full width, auto height, always visible on mobile */
+  .left{
+    width:100%;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+    padding:20px 16px;
+    gap:18px;
+    overflow-y:visible;
+    flex-shrink:0;
+  }
+
+  /* Right panel: full width, min height so it has space */
+  .right{
+    width:100%;
+    min-height:60vh;
+    overflow:visible;
+    flex-shrink:0;
+  }
+
+  .wiki-content{
+    overflow-y:visible;
+    padding:20px 16px 32px;
+    flex:none;
+  }
+
+  /* Smaller type */
+  .dewey-number{font-size:44px;}
+  .cat-name{font-size:17px;}
+  .art-h1{font-size:22px;}
+  .summary p{font-size:13.5px;}
+
+  .corner{width:24px;height:24px;}
+
+  /* Remove clip paths on mobile — they can cause tap issues */
+  .btn,.read-full,.badge{clip-path:none;border-radius:3px;}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<div class="app">
+  <header>
+    <div class="wordmark">
+      <span class="wordmark-main">Stacks</span>
+      <span class="wordmark-sub">// Dewey Grid v2.1</span>
+    </div>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span id="poolLabel">System online</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-share" id="shareBtn" disabled>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+      <button class="btn btn-shuffle" id="shuffleBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+        Shuffle
+      </button>
+    </div>
+  </header>
+
+  <div class="body">
+    <div class="left" id="leftPanel">
+      <div class="empty-state">
+        <div class="empty-hex">◈</div>
+        <div class="empty-label">Initialise sequence</div>
+        <div class="empty-hint">Press shuffle to begin</div>
+      </div>
+    </div>
+    <div class="right" id="rightPanel">
+      <div class="center-box" style="min-height:200px;">
+        <div style="font-size:28px;opacity:.15;color:var(--cyan);">▣</div>
+        <span>Awaiting input signal</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">// Link copied to buffer</div>
+
+<script>
+const CATS = [
+  {s:0,e:99,name:"General Works & Information Science",
+   desc:"Encyclopedias, bibliographies, journalism, museums, and the philosophy of knowledge itself.",
+   arts:["Wikipedia","Library science","Open access","Encyclopedia","Encyclopædia Britannica","Internet Archive","Digital library","Library of Congress","British Library","Bibliography","Information science","Knowledge management","Academic publishing","Peer review","Freedom of information","Censorship","Mass media","Journalism","News agency","Public domain","Copyright","Creative Commons","Data curation","Museum","Archive","Dewey Decimal Classification","Universal Decimal Classification","Metadata","Taxonomy (general)","Open-source software"]},
+  {s:100,e:199,name:"Philosophy & Psychology",
+   desc:"The nature of mind, ethics, logic, metaphysics, and the enduring questions of human existence.",
+   arts:["Stoicism","Existentialism","Cognitive science","Consciousness","Plato","Immanuel Kant","Aristotle","Friedrich Nietzsche","René Descartes","David Hume","John Locke","Baruch Spinoza","Ludwig Wittgenstein","Jean-Paul Sartre","Simone de Beauvoir","Karl Popper","Thomas Kuhn","Philosophy of mind","Epistemology","Metaphysics","Ethics","Logic","Free will","Utilitarianism","Deontological ethics","Phenomenology","Pragmatism","Sigmund Freud","Carl Jung","Behaviourism","Cognitive psychology","Evolutionary psychology","Positive psychology","Emotion","Memory","Perception"]},
+  {s:200,e:299,name:"Religion & Mythology",
+   desc:"Sacred texts, theology, comparative religion, mysticism, and world mythological traditions.",
+   arts:["Buddhism","Hinduism","Islamic Golden Age","Mythology","Gnosticism","Zen","Islam","Christianity","Judaism","Sikhism","Jainism","Taoism","Zoroastrianism","Ancient Egyptian religion","Greek mythology","Norse mythology","Roman mythology","Mesopotamian mythology","Aztec mythology","Shinto","Sufism","Kabbalah","Upanishads","Bhagavad Gita","Quran","Torah","Bible","Book of Job","Dead Sea Scrolls","Vedas","Theravada","Mahayana","Protestant Reformation","Counter-Reformation","Crusades","Mysticism","Animism","Shamanism","Paganism"]},
+  {s:300,e:399,name:"Social Sciences",
+   desc:"Economics, political science, sociology, law, education, and the workings of human society.",
+   arts:["Democracy","Anthropology","Feminism","Human rights","Capitalism","Socialism","Communism","Anarchism","Liberalism","Conservatism","Nationalism","Fascism","Political economy","Welfare state","Civil rights movement","Trade union","Colonialism","Imperialism","Globalisation","Poverty","Inequality","Education","Pedagogy","Sociology","Social stratification","Gender","Race","Ethnicity","Immigration","Urbanisation","Public health","Law","Common law","International law","United Nations","Keynesian economics","Neoliberalism","Behavioural economics","Game theory"]},
+  {s:400,e:499,name:"Language & Linguistics",
+   desc:"Grammar, etymology, translation, dialects, language death, and the science of how language works.",
+   arts:["Linguistics","Etymology","Constructed language","Phonology","Semiotics","Proto-Indo-European language","Language acquisition","Noam Chomsky","Sapir-Whorf hypothesis","Endangered language","Writing system","Alphabet","Cuneiform","Hieroglyphics","Latin","Sanskrit","Arabic language","Mandarin Chinese","English language","French language","Spanish language","Swahili language","Sign language","Braille","International Phonetic Alphabet","Dialect","Creole language","Pidgin","Lingua franca","Translation","Morphology (linguistics)","Syntax","Semantics","Pragmatics","Sociolinguistics","Historical linguistics","Rosetta Stone","Esperanto"]},
+  {s:500,e:599,name:"Natural Sciences & Mathematics",
+   desc:"Physics, chemistry, biology, geology, astronomy, and the foundations of pure mathematics.",
+   arts:["Quantum mechanics","Evolution","Thermodynamics","General relativity","Number theory","Cosmology","Special relativity","Standard Model","Dark matter","Dark energy","Big Bang","Black hole","Neutron star","Supernova","Milky Way","Exoplanet","DNA","Cell (biology)","Photosynthesis","Nervous system","Immune system","Natural selection","Genetics","Epigenetics","CRISPR","Stem cell","Plate tectonics","Geological time scale","Mass extinction","Ice age","Periodic table","Chemical bond","Organic chemistry","Prime number","Calculus","Complex number","Topology","Graph theory","Chaos theory","Information theory","Statistics","Probability","Fermat's Last Theorem"]},
+  {s:600,e:699,name:"Technology & Applied Sciences",
+   desc:"Engineering, medicine, computing, agriculture, and the practical transformation of the natural world.",
+   arts:["Artificial intelligence","History of the Internet","Nuclear reactor","Semiconductor","Vaccine","History of medicine","Machine learning","Deep learning","Neural network","Computer","Microprocessor","Operating system","Internet","World Wide Web","Cryptography","Blockchain","Quantum computing","Robotics","Automation","Electric vehicle","Renewable energy","Solar panel","Wind turbine","Nuclear fusion","Antibiotics","Surgery","Anaesthesia","Germ theory","Human Genome Project","Prosthetics","Medical imaging","Organ transplantation","Nanotechnology","Biotechnology","Genetic engineering","Agriculture","Green Revolution","3D printing","Satellite","Telescope","Radio","Television","Steam engine","Jet engine","Space exploration"]},
+  {s:700,e:799,name:"Arts & Recreation",
+   desc:"Architecture, painting, sculpture, music, theatre, cinema, photography, and sport.",
+   arts:["Jazz","History of music","Photography","Architecture","Film theory","Modernism","Renaissance","Baroque","Impressionism","Abstract expressionism","Surrealism","Bauhaus","Art Nouveau","Cubism","Dadaism","Pop art","Minimalism","Leonardo da Vinci","Michelangelo","Rembrandt","Pablo Picasso","Frida Kahlo","Vincent van Gogh","Salvador Dali","Jackson Pollock","Andy Warhol","Ludwig van Beethoven","Wolfgang Amadeus Mozart","Johann Sebastian Bach","Classical music","Opera","Blues","Rock music","Hip hop music","Electronic music","History of cinema","Silent film","Film noir","Documentary film","Theatre","Greek theatre","Ballet","Modern dance","Olympic Games","Association football","Cricket","Chess","Tennis"]},
+  {s:800,e:899,name:"Literature",
+   desc:"Poetry, drama, fiction, literary criticism, and the written arts across all world cultures.",
+   arts:["Novel","Poetry","Romanticism","Magical realism","Beat Generation","Realism (arts)","Modernist literature","Postmodern literature","Science fiction","Gothic fiction","Epic poetry","Lyric poetry","Tragedy","Comedy","Satire","Allegory","Homer","Virgil","Dante Alighieri","Geoffrey Chaucer","William Shakespeare","John Milton","Johann Wolfgang von Goethe","Leo Tolstoy","Fyodor Dostoevsky","Franz Kafka","Marcel Proust","James Joyce","Virginia Woolf","T. S. Eliot","Jorge Luis Borges","Gabriel Garcia Marquez","Toni Morrison","Chinua Achebe","Rabindranath Tagore","Haruki Murakami","Samuel Beckett","Bertolt Brecht","Greek tragedy","Russian literature","Latin American literature","African literature","Postcolonial literature","Feminist literary criticism"]},
+  {s:900,e:999,name:"History & Geography",
+   desc:"Chronicles of civilisations, biography, travel, cartography, and the unfolding of world events.",
+   arts:["Ancient Rome","Byzantine Empire","World War II","Age of Enlightenment","Colonialism","Silk Road","Ancient Egypt","Ancient Greece","Mesopotamia","Indus Valley Civilisation","Ancient China","Mongol Empire","Ottoman Empire","British Empire","Mughal Empire","Maurya Empire","French Revolution","American Revolution","Industrial Revolution","Russian Revolution","World War I","Cold War","Decolonisation","Space Race","Cuban Missile Crisis","Renaissance","Age of Discovery","Transatlantic slave trade","Abolition of slavery","Holocaust","Partition of India","Korean War","Vietnam War","History of Africa","History of India","History of China","History of Japan","Cartography","Geography","Amazon basin","Sahara","Himalayas","Atlantic Ocean","Arctic","Antarctic"]}
+];
+
+const total = CATS.reduce((n,c)=>n+c.arts.length,0);
+document.getElementById('poolLabel').textContent = `${total} nodes indexed`;
+
+let st={cat:null,article:null,url:null};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const wUrl=t=>`https://en.wikipedia.org/wiki/${encodeURIComponent(t.replace(/ /g,'_'))}`;
+const apiUrl=t=>`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t.replace(/ /g,'_'))}`;
+
+function renderLeft(cat,art,num){
+  document.getElementById('leftPanel').innerHTML=`
+    <div class="anim dewey-block">
+      <div class="data-label">// Classification node</div>
+      <div class="dewey-number">${num}</div>
+      <div class="dewey-range">// CLASS ${cat.s}&ndash;${cat.e}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="anim" style="animation-delay:.07s">
+      <div class="data-label">// Sector</div>
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-desc">${cat.desc}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="anim" style="animation-delay:.14s">
+      <div class="data-label">// Selected node</div>
+      <div class="art-link" id="artLink" data-art="${art}">${art}</div>
+      <div><div class="badge">&#9733; Wikipedia article</div></div>
+    </div>
+  `;
+  // artLink click handled via event delegation below
+}
+
+function showLoading(){
+  document.getElementById('rightPanel').innerHTML=`
+    <div class="center-box" style="min-height:200px;">
+      <div class="ring"></div>
+      <span>Accessing data node&hellip;</span>
+    </div>
+  `;
+}
+
+function renderRight(data,art){
+  const url=wUrl(art);
+  const paras=(data.extract||'').split('\n').filter(p=>p.trim()).slice(0,5);
+  document.getElementById('rightPanel').innerHTML=`
+    <div class="wiki-bar">
+      <span class="wiki-url">// en.wikipedia.org &rsaquo; ${art.replace(/ /g,'_')}</span>
+    </div>
+    <div class="wiki-content anim">
+      <div class="art-header">
+        <div class="data-label">// Wikipedia data node</div>
+        <div class="art-h1">${data.title||art}</div>
+        ${data.description?`<div class="art-desc">${data.description}</div>`:''}
+      </div>
+      <div class="summary">${paras.map(p=>`<p>${p}</p>`).join('')}</div>
+      <button class="read-full" id="rfBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Access full node on Wikipedia
+      </button>
+    </div>
+  `;
+  document.getElementById('rfBtn').onclick=()=>window.open(url,'_blank','noopener');
+}
+
+function renderError(art){
+  const url=wUrl(art);
+  document.getElementById('rightPanel').innerHTML=`
+    <div class="wiki-bar"><span class="wiki-url">// en.wikipedia.org &rsaquo; ${art.replace(/ /g,'_')}</span></div>
+    <div class="center-box" style="min-height:200px;gap:16px;">
+      <div style="font-size:22px;color:var(--cyan);opacity:.4">&#9888;</div>
+      <span>Signal lost</span>
+      <button class="read-full" onclick="window.open('${url}','_blank','noopener')">Open on Wikipedia</button>
+    </div>
+  `;
+}
+
+function loadArt(art){
+  st.url=wUrl(art);
+  st.article=art;
+  showLoading();
+  document.getElementById('shareBtn').disabled=true;
+
+  fetch(apiUrl(art))
+    .then(function(r){
+      if(!r.ok) throw new Error('bad response');
+      return r.json();
+    })
+    .then(function(d){
+      renderRight(d,art);
+      document.getElementById('shareBtn').disabled=false;
+    })
+    .catch(function(err){
+      renderError(art);
+      document.getElementById('shareBtn').disabled=false;
+    });
+}
+
+// Use addEventListener instead of .onclick for Safari reliability
+document.getElementById('shuffleBtn').addEventListener('click', function(){
+  var cat=pick(CATS);
+  var art=pick(cat.arts);
+  var num=cat.s+Math.floor(Math.random()*(cat.e-cat.s+1));
+  st.cat=cat;
+  st.article=art;
+  st.url=wUrl(art);
+  renderLeft(cat,art,num);
+  loadArt(art);
+});
+
+document.getElementById('shareBtn').addEventListener('click', function(){
+  if(!st.url) return;
+  var txt=st.article+' \u2014 Dewey '+st.cat.s+'\u2013'+st.cat.e+': '+st.cat.name+'\n'+st.url;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(showToast).catch(function(){
+      fallbackCopy(txt);
+    });
+  } else {
+    fallbackCopy(txt);
+  }
+});
+
+function fallbackCopy(txt){
+  var ta=document.createElement('textarea');
+  ta.value=txt;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{ document.execCommand('copy'); showToast(); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+// Event delegation for all dynamically injected interactive elements
+document.body.addEventListener('click', function(e){
+  var rf=e.target.closest('#rfBtn');
+  if(rf && st.url){ window.open(st.url,'_blank','noopener'); return; }
+
+  var al=e.target.closest('#artLink');
+  if(al){
+    var art=al.getAttribute('data-art');
+    if(art) loadArt(art);
+    return;
+  }
+});
+
+function showToast(){
+  var t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },2400);
+}
+</script>
+</body>
+</html>
